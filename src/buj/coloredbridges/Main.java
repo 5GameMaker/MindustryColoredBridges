@@ -30,22 +30,23 @@ public class Main extends Mod {
                 }
             };
 
-            Constructor<? extends Building> bridgeConveyorBuild;
-            RainbowItemConveyor bridgeConveyorProxy = new RainbowItemConveyor((ItemBridge) Blocks.itemBridge);
-            {
-                Class<?> ty = Structs.find(
-                        RainbowItemConveyor.class.getDeclaredClasses(),
-                        t -> Building.class.isAssignableFrom(t) && !t.isInterface());
-                bridgeConveyorBuild = (Constructor<? extends Building>) ty
-                        .getDeclaredConstructor(ty.getDeclaringClass());
-            }
-            Blocks.itemBridge.buildType = () -> {
-                try {
-                    return bridgeConveyorBuild.newInstance(bridgeConveyorProxy);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            };
+            // Constructor<? extends Building> bridgeConveyorBuild;
+            // RainbowItemConveyor bridgeConveyorProxy = new
+            // RainbowItemConveyor((ItemBridge) Blocks.itemBridge);
+            // {
+            // Class<?> ty = Structs.find(
+            // RainbowItemConveyor.class.getDeclaredClasses(),
+            // t -> Building.class.isAssignableFrom(t) && !t.isInterface());
+            // bridgeConveyorBuild = (Constructor<? extends Building>) ty
+            // .getDeclaredConstructor(ty.getDeclaringClass());
+            // }
+            // Blocks.itemBridge.buildType = () -> {
+            // try {
+            // return bridgeConveyorBuild.newInstance(bridgeConveyorProxy);
+            // } catch (Exception e) {
+            // throw new RuntimeException(e);
+            // }
+            // };
         } catch (Exception e) {
             // I love Java
             throw new RuntimeException(e);
