@@ -1,0 +1,9 @@
+displayName: "Colored Bridges"
+name: "colored-bridges"
+author: "buj"
+main: "buj.coloredbridges.Main"
+description: "A mod that colors the bridges"
+version: 0.1
+minGameVersion: 146
+java: true
+hidden: true
