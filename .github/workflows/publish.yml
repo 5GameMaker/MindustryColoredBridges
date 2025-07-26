@@ -28,6 +28,8 @@ jobs:
 
     - name: Purge artifacts
       uses: c-hive/gha-remove-artifacts@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.SECRET_GITHUB_TOKEN }}
       with:
         age: 0
 
