@@ -9,11 +9,13 @@ import arc.math.geom.Point2;
 import arc.util.Time;
 import arc.util.Tmp;
 import mindustry.Vars;
+import mindustry.content.Blocks;
 import mindustry.core.Renderer;
 import mindustry.graphics.Layer;
 import mindustry.world.Tile;
 import mindustry.world.blocks.distribution.ItemBridge;
 import mindustry.world.meta.BuildVisibility;
+import yash.oklab.Ok;
 
 public class RainbowItemConveyor extends ItemBridge {
     public final ItemBridge source;
@@ -189,12 +191,14 @@ public class RainbowItemConveyor extends ItemBridge {
         this.generateIcons = false;
         this.inEditor = false;
         this.buildVisibility = BuildVisibility.hidden;
+        this.fullIcon = source.fullIcon;
 
         this.source = source;
 
-        for (int i = 0; i < range; i++) {
-            colors[i] = Color.HSVtoRGB(i * (360 / range), 75, 50);
+        for (int i = 1; i < range; i++) {
+            colors[i] = Ok.HSV((i - 1) * (360 / (range - 2)), 100, 30 + i * (20f / (range - 1)));
         }
+        colors[0] = Color.black;
     }
 
     @Override
