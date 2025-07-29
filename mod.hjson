@@ -3,7 +3,7 @@ name: "colored-bridges"
 author: "buj"
 main: "buj.coloredbridges.Main"
 description: "A mod that colors the bridges"
-version: 0.2
+version: 0.3
 minGameVersion: 146
 java: true
 hidden: true

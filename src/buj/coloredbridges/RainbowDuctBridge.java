@@ -2,25 +2,22 @@ package buj.coloredbridges;
 
 import arc.graphics.Color;
 import arc.graphics.g2d.Draw;
-import arc.graphics.g2d.Lines;
-import arc.math.Mathf;
+import arc.math.Angles;
 import arc.math.geom.Geometry;
-import arc.math.geom.Point2;
-import arc.util.Time;
-import arc.util.Tmp;
+import arc.util.Nullable;
 import mindustry.Vars;
 import mindustry.core.Renderer;
 import mindustry.graphics.Layer;
 import mindustry.world.Tile;
-import mindustry.world.blocks.distribution.ItemBridge;
+import mindustry.world.blocks.distribution.DuctBridge;
 import mindustry.world.meta.BuildVisibility;
 import yash.oklab.Ok;
 
-public class RainbowItemConveyor extends ItemBridge {
-    public final ItemBridge source;
+public class RainbowDuctBridge extends DuctBridge {
+    public final DuctBridge source;
     public final Color[] colors;
 
-    public RainbowItemConveyor(ItemBridge source) {
+    public RainbowDuctBridge(DuctBridge source) {
         super("temp-block-" + source.name);
 
         this.hasItems = source.hasItems;
@@ -172,119 +169,92 @@ public class RainbowItemConveyor extends ItemBridge {
         this.consumers = source.consumers;
         this.hasConsumers = source.hasConsumers;
         this.consPower = source.consPower;
-        this.fadeIn = source.fadeIn;
-        this.moveArrows = source.moveArrows;
-        this.pulse = source.pulse;
-        this.arrowSpacing = source.arrowSpacing;
-        this.arrowOffset = source.arrowOffset;
-        this.arrowPeriod = source.arrowPeriod;
-        this.arrowTimeScl = source.arrowTimeScl;
-        this.bridgeWidth = source.bridgeWidth;
+        this.speed = source.speed;
 
         this.bridgeRegion = source.bridgeRegion;
         this.arrowRegion = source.arrowRegion;
-        this.endRegion = source.endRegion;
         this.range = source.range;
-        this.transportTime = source.transportTime;
 
         this.generateIcons = false;
         this.inEditor = false;
         this.buildVisibility = BuildVisibility.hidden;
         this.fullIcon = source.fullIcon;
         this.uiIcon = source.uiIcon;
+        this.bridgeRegion = source.bridgeRegion;
+        this.bridgeBotRegion = source.bridgeBotRegion;
+        this.bridgeLiquidRegion = source.bridgeLiquidRegion;
+        this.arrowRegion = source.arrowRegion;
+        this.dirRegion = source.dirRegion;
 
         this.source = source;
 
         colors = new Color[this.source.range];
         for (int i = 1; i < range; i++) {
-            colors[i] = Ok.HSV((i - 1) * (360 / (range - 2)), 100, 30 + i * (20f / (range - 1)));
+            colors[i] = Ok.HSV((i - 1) * (360 / (range - 1)), 100, 30 + i * (20f / (range - 1)));
         }
         colors[0] = Color.black;
     }
 
-    @Override
-    public boolean linkValid(Tile tile, Tile other, boolean checkDouble) {
-        if (other == null || tile == null || !positionsValid(tile.x, tile.y, other.x, other.y))
-            return false;
+    public void drawBridge(Color conveyorColor, int rotation, float x1, float y1, float x2, float y2,
+            @Nullable Color liquidColor) {
+        Draw.mixcol(conveyorColor, 1f);
+        Draw.alpha(Renderer.bridgeOpacity);
+        float angle = Angles.angle(x1, y1, x2, y2),
+                cx = (x1 + x2) / 2f,
+                cy = (y1 + y2) / 2f,
+                len = Math.max(Math.abs(x1 - x2), Math.abs(y1 - y2)) - size * Vars.tilesize;
 
-        return ((other.block() == tile.block() && tile.block() == source)
-                || (!(tile.block() instanceof ItemBridge) && other.block() == source))
-                && (other.team() == tile.team() || tile.block() != source)
-                && (!checkDouble || ((ItemBridgeBuild) other.build).link != tile.pos());
+        Draw.rect(bridgeRegion, cx, cy, len, bridgeRegion.height * bridgeRegion.scl(), angle);
+        if (liquidColor != null) {
+            Draw.color(liquidColor, liquidColor.a * Renderer.bridgeOpacity);
+            Draw.rect(bridgeLiquidRegion, cx, cy, len, bridgeLiquidRegion.height * bridgeLiquidRegion.scl(), angle);
+            Draw.color();
+            Draw.alpha(Renderer.bridgeOpacity);
+        }
+        if (bridgeBotRegion.found()) {
+            Draw.color(0.4f, 0.4f, 0.4f, 0.4f * Renderer.bridgeOpacity);
+            Draw.rect(bridgeBotRegion, cx, cy, len, bridgeBotRegion.height * bridgeBotRegion.scl(), angle);
+            Draw.reset();
+        }
+        Draw.alpha(Renderer.bridgeOpacity);
+
+        for (float i = 6f; i <= len + size * Vars.tilesize - 5f; i += 5f) {
+            Draw.rect(arrowRegion, x1 + Geometry.d4x(rotation) * i, y1 + Geometry.d4y(rotation) * i, angle);
+        }
+
+        Draw.color();
+        Draw.mixcol();
+        Draw.reset();
     }
 
-    public class RainbowItemConveyorBuild extends ItemBridge.ItemBridgeBuild {
+    public class RainbowDuctBridgeBuild extends DuctBridgeBuild {
+        @Override
+        public @Nullable DirectionBridgeBuild findLink() {
+            for (int i = 1; i <= range; i++) {
+                Tile other = tile.nearby(Geometry.d4x(rotation) * i, Geometry.d4y(rotation) * i);
+                if (other != null && other.build instanceof DirectionBridgeBuild build
+                        && build.block == source && build.team == team) {
+                    return build;
+                }
+            }
+            return null;
+        }
+
         @Override
         public void draw() {
-            if (this.block.variants != 0 && this.block.variantRegions != null) {
-                Draw.rect(this.block.variantRegions[Mathf.randomSeed((long) this.tile.pos(), 0,
-                        Math.max(0, this.block.variantRegions.length - 1))], this.x, this.y, this.drawrot());
-            } else {
-                Draw.rect(this.block.region, this.x, this.y, this.drawrot());
+            Draw.rect(block.region, x, y);
+            Draw.rect(dirRegion, x, y, rotdeg());
+            var link = findLink();
+            if (link != null) {
+                var dst = (tileX() - link.tileX()) + (tileY() - link.tileY());
+                if (dst < 0)
+                    dst *= -1;
+                Color conveyorColor = Color.black;
+                if (dst <= range)
+                    conveyorColor = colors[dst - 1];
+                Draw.z(Layer.power - 1);
+                drawBridge(conveyorColor, rotation, x, y, link.x, link.y, null);
             }
-
-            this.drawTeamTop();
-
-            Draw.z(Layer.power);
-
-            Tile other = Vars.world.tile(link);
-            if (!linkValid(tile, other)) {
-                return;
-            }
-
-            if (Mathf.zero(Renderer.bridgeOpacity))
-                return;
-
-            int i = relativeTo(other.x, other.y);
-
-            var dst = Point2.x(link) - tileX();
-            if (dst == 0)
-                dst = Point2.y(link) - tileY();
-            if (dst < 0)
-                dst *= -1;
-            Color conveyorColor = Color.black;
-            if (dst <= range)
-                conveyorColor = colors[dst - 1];
-
-            if (pulse) {
-                Draw.color(Color.white, Color.black, Mathf.absin(Time.time, 6f, 0.07f));
-            }
-
-            float warmup = hasPower ? this.warmup : 1f;
-
-            Draw.alpha((fadeIn ? Math.max(warmup, 0.25f) : 1f) * Renderer.bridgeOpacity);
-
-            Draw.mixcol(conveyorColor, 1.0f);
-            Draw.rect(endRegion, x, y, i * 90 + 90);
-            Draw.rect(endRegion, other.drawx(), other.drawy(), i * 90 + 270);
-
-            Lines.stroke(bridgeWidth);
-
-            Tmp.v1.set(x, y).sub(other.worldx(), other.worldy()).setLength(Vars.tilesize / 2f).scl(-1f);
-
-            Draw.mixcol(conveyorColor, 1.0f);
-            Lines.line(bridgeRegion,
-                    x + Tmp.v1.x,
-                    y + Tmp.v1.y,
-                    other.worldx() - Tmp.v1.x,
-                    other.worldy() - Tmp.v1.y, false);
-
-            int dist = Math.max(Math.abs(other.x - tile.x), Math.abs(other.y - tile.y)) - 1;
-
-            int arrows = (int) (dist * Vars.tilesize / arrowSpacing), dx = Geometry.d4x(i), dy = Geometry.d4y(i);
-
-            Draw.mixcol(conveyorColor, 1.0f);
-            for (int a = 0; a < arrows; a++) {
-                Draw.alpha(Mathf.absin(a - time / arrowTimeScl, arrowPeriod, 1f) * warmup * Renderer.bridgeOpacity);
-                Draw.rect(arrowRegion,
-                        x + dx * (Vars.tilesize / 2f + a * arrowSpacing + arrowOffset),
-                        y + dy * (Vars.tilesize / 2f + a * arrowSpacing + arrowOffset),
-                        i * 90f);
-            }
-            Draw.color();
-            Draw.mixcol();
-
-            Draw.reset();
         }
     }
 }
