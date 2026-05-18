@@ -65,6 +65,7 @@ public class RainbowItemConveyor extends ItemBridge {
         this.saveData = source.saveData;
         this.breakable = source.breakable;
         this.rebuildable = source.rebuildable;
+        this.buildCostMultiplier = source.buildCostMultiplier;
         this.privileged = source.privileged;
         this.requiresWater = source.requiresWater;
         this.placeableLiquid = source.placeableLiquid;
@@ -146,13 +147,10 @@ public class RainbowItemConveyor extends ItemBridge {
         this.emitLight = source.emitLight;
         this.lightRadius = source.lightRadius;
         this.fogRadius = source.fogRadius;
-        this.loopSound = source.loopSound;
-        this.loopSoundVolume = source.loopSoundVolume;
         this.ambientSound = source.ambientSound;
         this.ambientSoundVolume = source.ambientSoundVolume;
         this.requirements = source.requirements;
         this.category = source.category;
-        this.buildCost = source.buildCost;
         this.buildCostMultiplier = source.buildCostMultiplier;
         this.deconstructThreshold = source.deconstructThreshold;
         this.instantDeconstruct = source.instantDeconstruct;

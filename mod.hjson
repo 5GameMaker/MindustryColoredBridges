@@ -4,6 +4,6 @@ author: "buj"
 main: "buj.coloredbridges.Main"
 description: "A mod that colors the bridges"
 version: 0.3
-minGameVersion: 146
+minGameVersion: 154.3
 java: true
 hidden: true
